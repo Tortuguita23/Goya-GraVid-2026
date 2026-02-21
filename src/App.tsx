@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 
+declare global {
+  interface Window {
+    storage?: {
+      get: (key: string) => Promise<{ value: string } | null>;
+      set: (key: string, value: string) => Promise<void>;
+    };
+  }
+}
+
 const CATS = [
   { id:"pelicula", label:"Mejor Película", emoji:"🏆", nominees:[
     {id:"cena",name:"La cena"},{id:"domingos",name:"Los domingos",nv:true},
@@ -142,6 +151,16 @@ const PC = { G:"#5B9BD5", D:"#D4763A" };
 const PN = { G:"Graciela", D:"David" };
 const pts = r => r ? Math.max(0, 6 - r) : 0;
 const SECRET = "23";
+
+const storage = window.storage ?? {
+  async get(key) {
+    const value = window.localStorage.getItem(key);
+    return value == null ? null : { value };
+  },
+  async set(key, value) {
+    window.localStorage.setItem(key, value);
+  },
+};
 
 function insertAtPos(arr, nomId, pos) {
   const f = arr.filter(id => id !== nomId);
@@ -350,15 +369,15 @@ export default function App() {
 
   useEffect(()=>{
     (async()=>{
-      try { const r=await window.storage.get("g26_r3"); if(r) setRanks(JSON.parse(r.value)); } catch(e){}
-      try { const w=await window.storage.get("g26_w3"); if(w) setWinners(JSON.parse(w.value)); } catch(e){}
+      try { const r=await storage.get("g26_r3"); if(r) setRanks(JSON.parse(r.value)); } catch(e){}
+      try { const w=await storage.get("g26_w3"); if(w) setWinners(JSON.parse(w.value)); } catch(e){}
       setLoaded(true);
     })();
   },[]);
 
   const save = async(nr,nw)=>{
-    try { await window.storage.set("g26_r3",JSON.stringify(nr)); } catch(e){}
-    try { await window.storage.set("g26_w3",JSON.stringify(nw||winners)); } catch(e){}
+    try { await storage.set("g26_r3",JSON.stringify(nr)); } catch(e){}
+    try { await storage.set("g26_w3",JSON.stringify(nw||winners)); } catch(e){}
   };
 
   const handleInsert=(player,catId,nomId,pos)=>{
@@ -458,7 +477,7 @@ export default function App() {
                     <span style={{fontSize:20,flexShrink:0}}>{cat.emoji}</span>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-                        <span style={{fontSize:14,fontWeight:700,color:"#3a2a10"}}>Mejor {cat.label}</span>
+                        <span style={{fontSize:14,fontWeight:700,color:"#3a2a10"}}>{cat.label}</span>
                         {wNom&&<span style={{fontSize:10,color:GOLD,border:`1px solid ${GOLD}66`,padding:"1px 6px",borderRadius:3,letterSpacing:1}}>🏆 REVELADO</span>}
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
@@ -500,7 +519,7 @@ export default function App() {
               border:same?"1px solid rgba(80,160,80,0.2)":"1px solid rgba(180,120,40,0.2)",padding:"12px 14px"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                 <span>{cat.emoji}</span>
-                <span style={{fontWeight:700,fontSize:14,flex:1,color:"#3a2a10"}}>Mejor {cat.label}</span>
+                <span style={{fontWeight:700,fontSize:14,flex:1,color:"#3a2a10"}}>{cat.label}</span>
                 {same&&gO.length>0&&<span style={{fontSize:10,color:"#507840",border:"1px solid rgba(80,160,80,0.3)",padding:"1px 7px",borderRadius:3,letterSpacing:1}}>ACUERDO</span>}
                 {!same&&<span style={{fontSize:10,color:"#886030",border:"1px solid rgba(180,120,40,0.3)",padding:"1px 7px",borderRadius:3,letterSpacing:1}}>DIFIEREN</span>}
                 {wNom&&<span style={{fontSize:11,color:"#8a7020",fontWeight:700}}>🏆 {wNom.name}</span>}
@@ -545,7 +564,7 @@ export default function App() {
               <div style={{padding:"10px 16px",display:"flex",gap:8,alignItems:"center",borderBottom:w?`1px solid ${GOLD}33`:"none"}}>
                 <span style={{fontSize:18}}>{cat.emoji}</span>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#3a2a10"}}>Mejor {cat.label}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:"#3a2a10"}}>{cat.label}</div>
                   {wNom&&<div style={{fontSize:13,color:"#8a7020",fontStyle:"italic",marginTop:2}}>🏆 {wNom.name}{wNom.film?` · ${wNom.film}`:""}</div>}
                 </div>
               </div>
@@ -622,7 +641,7 @@ export default function App() {
                 <div key={cat.id} style={{display:"grid",gridTemplateColumns:"1fr 85px 85px",alignItems:"center",gap:10,
                   padding:"10px 14px",marginBottom:5,background:BG2,borderRadius:6,border:"1px solid rgba(180,140,60,0.15)"}}>
                   <div>
-                    <div style={{fontSize:10,color:"rgba(100,80,40,0.45)",letterSpacing:1,textTransform:"uppercase"}}>Mejor {cat.label}</div>
+                    <div style={{fontSize:10,color:"rgba(100,80,40,0.45)",letterSpacing:1,textTransform:"uppercase"}}>{cat.label}</div>
                     <div style={{fontSize:13,fontWeight:700,color:"#8a7020",marginTop:2}}>🏆 {wNom?.name}</div>
                     {wNom?.film&&<div style={{fontSize:10,color:"rgba(100,80,40,0.5)"}}>{wNom.film}</div>}
                   </div>
